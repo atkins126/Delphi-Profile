@@ -1,0 +1,9 @@
+[submodule "modules/DUnitX"]
+	path = modules/DUnitX
+	url = git@github.com:dsogari/DUnitX.git
+[submodule "modules/Delphi-Mocks"]
+	path = modules/Delphi-Mocks
+	url = git@github.com:dsogari/Delphi-Mocks.git
+[submodule "modules/FastMM4"]
+	path = modules/FastMM4
+	url = git@github.com:dsogari/FastMM4.git
