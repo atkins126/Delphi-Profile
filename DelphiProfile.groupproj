@@ -1,0 +1,60 @@
+﻿<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{AF368674-B804-46EF-8191-43A6B45B78BA}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="project\DelphiProfilePkg.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="project\DelphiProfileUnitTest.dproj">
+            <Dependencies>project\DelphiProfilePkg.dproj</Dependencies>
+        </Projects>
+        <Projects Include="project\DelphiProfileViewer.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="DelphiProfilePkg">
+        <MSBuild Projects="project\DelphiProfilePkg.dproj"/>
+    </Target>
+    <Target Name="DelphiProfilePkg:Clean">
+        <MSBuild Projects="project\DelphiProfilePkg.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DelphiProfilePkg:Make">
+        <MSBuild Projects="project\DelphiProfilePkg.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DelphiProfileUnitTest" DependsOnTargets="DelphiProfilePkg">
+        <MSBuild Projects="project\DelphiProfileUnitTest.dproj"/>
+    </Target>
+    <Target Name="DelphiProfileUnitTest:Clean" DependsOnTargets="DelphiProfilePkg:Clean">
+        <MSBuild Projects="project\DelphiProfileUnitTest.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DelphiProfileUnitTest:Make" DependsOnTargets="DelphiProfilePkg:Make">
+        <MSBuild Projects="project\DelphiProfileUnitTest.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="DelphiProfileViewer">
+        <MSBuild Projects="project\DelphiProfileViewer.dproj"/>
+    </Target>
+    <Target Name="DelphiProfileViewer:Clean">
+        <MSBuild Projects="project\DelphiProfileViewer.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="DelphiProfileViewer:Make">
+        <MSBuild Projects="project\DelphiProfileViewer.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="DelphiProfilePkg;DelphiProfileUnitTest;DelphiProfileViewer"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="DelphiProfilePkg:Clean;DelphiProfileUnitTest:Clean;DelphiProfileViewer:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="DelphiProfilePkg:Make;DelphiProfileUnitTest:Make;DelphiProfileViewer:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

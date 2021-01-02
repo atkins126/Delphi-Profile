@@ -1,0 +1,42 @@
+package DelphiProfilePkg;
+
+{$R *.res}
+{$IFDEF IMPLICITBUILDING This IFDEF should not be used by users}
+{$ALIGN 8}
+{$ASSERTIONS ON}
+{$BOOLEVAL OFF}
+{$DEBUGINFO OFF}
+{$EXTENDEDSYNTAX ON}
+{$IMPORTEDDATA ON}
+{$IOCHECKS ON}
+{$LOCALSYMBOLS ON}
+{$LONGSTRINGS ON}
+{$OPENSTRINGS ON}
+{$OPTIMIZATION OFF}
+{$OVERFLOWCHECKS OFF}
+{$RANGECHECKS OFF}
+{$REFERENCEINFO ON}
+{$SAFEDIVIDE OFF}
+{$STACKFRAMES ON}
+{$TYPEDADDRESS OFF}
+{$VARSTRINGCHECKS ON}
+{$WRITEABLECONST OFF}
+{$MINENUMSIZE 1}
+{$IMAGEBASE $400000}
+{$DEFINE DEBUG}
+{$ENDIF IMPLICITBUILDING}
+{$IMPLICITBUILD ON}
+
+requires
+  rtl;
+
+contains
+  Delphi.Profile.AggregateInfo in '..\source\Delphi.Profile.AggregateInfo.pas',
+  Delphi.Profile.AggregateReport in '..\source\Delphi.Profile.AggregateReport.pas',
+  Delphi.Profile.CallInfo in '..\source\Delphi.Profile.CallInfo.pas',
+  Delphi.Profile.CallReport in '..\source\Delphi.Profile.CallReport.pas',
+  Delphi.Profile.CallTracer in '..\source\Delphi.Profile.CallTracer.pas',
+  Delphi.Profile.Trace in '..\source\Delphi.Profile.Trace.pas',
+  Delphi.Profile in '..\source\Delphi.Profile.pas';
+
+end.
