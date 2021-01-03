@@ -29,6 +29,10 @@ type
 
 implementation
 
+uses
+  System.SysUtils,
+  System.Diagnostics;
+
 { TAggregateReport }
 
 constructor TAggregateReport.Create;

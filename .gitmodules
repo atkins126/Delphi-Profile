@@ -7,3 +7,6 @@
 [submodule "modules/FastMM4"]
 	path = modules/FastMM4
 	url = git@github.com:dsogari/FastMM4.git
+[submodule "modules/DelphiCodeCoverage"]
+	path = modules/DelphiCodeCoverage
+	url = git@github.com:dsogari/DelphiCodeCoverage.git

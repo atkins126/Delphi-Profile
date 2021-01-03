@@ -38,7 +38,8 @@ type
 implementation
 
 uses
-  System.Classes;
+  System.Classes,
+  Delphi.Profile.Trace;
 
 { TCallTracer }
 
@@ -116,6 +117,6 @@ end;
 
 initialization
 
-SetTracer(TCallTracer.Create);
+TTrace.Tracer := TCallTracer.Create;
 
 end.

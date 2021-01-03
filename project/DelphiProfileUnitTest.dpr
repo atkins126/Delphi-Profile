@@ -12,6 +12,7 @@ uses
   {$ELSE}
   DUnitX.Loggers.Console,
   DUnitX.Loggers.Xml.JUnit,
+  DUnitX.StackTrace.JCL,
   {$ENDIF }
   DUnitX.TestFramework,
   Delphi.Profile.TraceTest in '..\test\Delphi.Profile.TraceTest.pas',

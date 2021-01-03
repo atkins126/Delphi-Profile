@@ -53,10 +53,10 @@
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <SanitizedProjectName>DelphiProfileUnitTest</SanitizedProjectName>
-        <DCC_UnitSearchPath>..\modules\DUnitX\Source;..\modules\Delphi-Mocks\Source;..\modules\FastMM4;..\source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
+        <DCC_UnitSearchPath>..\modules\DUnitX\Source;..\modules\Delphi-Mocks\Source;..\modules\FastMM4;..\source;..\modules\DelphiCodeCoverage\3rdParty\JCL\Source\Windows;..\modules\DelphiCodeCoverage\3rdParty\JCL\Source\include;..\modules\DelphiCodeCoverage\3rdParty\JCL\Source\common;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
         <DCC_MapFile>3</DCC_MapFile>
-        <DCC_Define>TESTINSIGHT;$(DCC_Define)</DCC_Define>
+        <DCC_Define>HAS_EXCEPTION_STACKTRACE;TESTINSIGHT;$(DCC_Define)</DCC_Define>
         <CfgDependentOn>DelphiProfile.optset</CfgDependentOn>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
@@ -91,7 +91,7 @@ $(PostBuildEvent)]]></PostBuildEvent>
         <DCC_LocalDebugSymbols>false</DCC_LocalDebugSymbols>
         <DCC_Define>RELEASE;$(DCC_Define)</DCC_Define>
         <DCC_SymbolReferenceInfo>0</DCC_SymbolReferenceInfo>
-        <DCC_DebugInformation>0</DCC_DebugInformation>
+        <DCC_DebugInformation>1</DCC_DebugInformation>
     </PropertyGroup>
     <ItemGroup>
         <DelphiCompile Include="$(MainSource)">

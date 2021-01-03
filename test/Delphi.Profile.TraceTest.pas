@@ -37,7 +37,8 @@ type
 implementation
 
 uses
-  System.Rtti;
+  System.Rtti,
+  Delphi.Profile.Trace;
 
 procedure TTraceTest.Setup;
 begin
@@ -48,7 +49,7 @@ begin
     begin
       FTraces.Push(args[1].AsType<TTraceInfo>());
     end);
-  SetTracer(FTracer);
+  TTrace.Tracer := FTracer;
 end;
 
 procedure TTraceTest.TearDown;
@@ -59,7 +60,7 @@ end;
 
 procedure TTraceTest.TestSetTrace;
 begin
-  SetTracer(nil);
+  TTrace.Tracer := nil;
   FTracer.Setup.Expect.Never('Log');
   begin
     Trace(''); // this should do nothing

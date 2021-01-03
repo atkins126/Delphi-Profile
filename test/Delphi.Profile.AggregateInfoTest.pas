@@ -43,6 +43,9 @@ type
 
 implementation
 
+uses
+  System.SysUtils;
+
 { TAggregateInfoTest }
 
 procedure TAggregateInfoTest.TearDown;

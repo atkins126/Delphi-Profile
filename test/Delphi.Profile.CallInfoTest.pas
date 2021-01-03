@@ -25,6 +25,9 @@ type
 
 implementation
 
+uses
+  System.SysUtils;
+
 { TCallInfoTest }
 
 procedure TCallInfoTest.Setup;
