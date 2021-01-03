@@ -84,6 +84,6 @@ end;
 
 initialization
 
-TStopwatch.Create; // initialize the stopwatch state
+TStopwatch.Create; // initialize the stopwatch type
 
 end.

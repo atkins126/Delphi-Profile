@@ -6,22 +6,23 @@ type
 
   TCallInfo = class
     private
-      FFunctionName: string;
-      FTotalCalls  : Int64;
-      FTotalTicks  : Int64;
+      FScopeName : string;
+      FTotalCalls: Int64;
+      FTotalTicks: Int64;
 
-      function GetTotalMicroseconds: Double;
-      function GetAverageMicroseconds: Double;
-
-    public
-      constructor Create(const FunctionName: string);
-      class function CommaHeader: string;
-      function CommaText: string;
+      function GetTotalMicroseconds: Double; inline;
+      function GetAverageMicroseconds: Double; inline;
+      class function GetCommaHeader: string; inline; static;
+      function GetCommaText: string; inline;
 
     public
-      property TotalCalls         : Int64 read FTotalCalls write FTotalCalls;
-      property TotalTicks         : Int64 read FTotalTicks write FTotalTicks;
-      property TotalMicroseconds  : Double read GetTotalMicroseconds;
+      constructor Create(const AScopeName: string);
+
+      class property CommaHeader: string read GetCommaHeader;
+      property CommaText: string read GetCommaText;
+      property TotalCalls: Int64 read FTotalCalls write FTotalCalls;
+      property TotalTicks: Int64 read FTotalTicks write FTotalTicks;
+      property TotalMicroseconds: Double read GetTotalMicroseconds;
       property AverageMicroseconds: Double read GetAverageMicroseconds;
   end;
 
@@ -31,23 +32,25 @@ uses
   System.SysUtils,
   System.Diagnostics;
 
-constructor TCallInfo.Create(const FunctionName: string);
+{ TCallInfo }
+
+constructor TCallInfo.Create(const AScopeName: string);
 begin
-  FFunctionName := FunctionName;
+  FScopeName := AScopeName;
 end;
 
-class function TCallInfo.CommaHeader: string;
+class function TCallInfo.GetCommaHeader: string;
 const
   CHeaderFormat = '"%s","%s","%s","%s"';
 begin
   Result := Format(CHeaderFormat, ['Function', 'Total Calls', 'Total Time (us)', 'Average Time (us)']);
 end;
 
-function TCallInfo.CommaText: string;
+function TCallInfo.GetCommaText: string;
 const
   CTextFormat = '"%s","%d","%.1f","%.3f"';
 begin
-  Result := Format(CTextFormat, [FFunctionName, FTotalCalls, TotalMicroseconds, AverageMicroseconds]);
+  Result := Format(CTextFormat, [FScopeName, FTotalCalls, GetTotalMicroseconds, GetAverageMicroseconds]);
 end;
 
 function TCallInfo.GetTotalMicroseconds: Double;
@@ -59,7 +62,11 @@ end;
 function TCallInfo.GetAverageMicroseconds: Double;
 begin
   Assert(FTotalCalls > 0);
-  Result := TotalMicroseconds / FTotalCalls;
+  Result := GetTotalMicroseconds / FTotalCalls;
 end;
+
+initialization
+
+TStopwatch.Create; // initialize the stopwatch type
 
 end.

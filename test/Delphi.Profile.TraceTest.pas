@@ -23,9 +23,15 @@ type
       procedure TearDown;
 
       [Test]
+      procedure TestSetTrace;
+
+      [Test]
       [TestCase('Empty scope name', '')]
       [TestCase('Non-empty scope name', 'abcdefghijklmnopqrstuvwxyz')]
       procedure TestTrace(const AScopeName: string);
+
+      [Test]
+      procedure TestNestedTrace;
   end;
 
 implementation
@@ -51,6 +57,17 @@ begin
   FTraces.Free;
 end;
 
+procedure TTraceTest.TestSetTrace;
+begin
+  SetTracer(nil);
+  FTracer.Setup.Expect.Never('Log');
+  begin
+    Trace(''); // this should do nothing
+  end;
+  Assert.AreEqual(0, FTraces.Count);
+  FTracer.VerifyAll;
+end;
+
 procedure TTraceTest.TestTrace(const AScopeName: string);
 begin
   FTracer.Setup.Expect.Exactly('Log', 2);
@@ -70,6 +87,44 @@ begin
       Assert.AreEqual(TraceEnter, FEventType);
       Assert.IsTrue(FElapsedTicks > 0);
     end;
+  FTracer.VerifyAll;
+end;
+
+procedure TTraceTest.TestNestedTrace;
+begin
+  FTracer.Setup.Expect.Exactly('Log', 4);
+  begin
+    Trace('Outer');
+    begin
+      Trace('Inner');
+    end;
+  end;
+  Assert.AreEqual(4, FTraces.Count);
+  with FTraces.Pop do
+    begin
+      Assert.AreEqual('Outer', FScopeName);
+      Assert.AreEqual(TraceLeave, FEventType);
+      Assert.IsTrue(FElapsedTicks < 3);
+    end;
+  with FTraces.Pop do
+    begin
+      Assert.AreEqual('Inner', FScopeName);
+      Assert.AreEqual(TraceLeave, FEventType);
+      Assert.IsTrue(FElapsedTicks < 3);
+    end;
+  with FTraces.Pop do
+    begin
+      Assert.AreEqual('Inner', FScopeName);
+      Assert.AreEqual(TraceEnter, FEventType);
+      Assert.IsTrue(FElapsedTicks < 3);
+    end;
+  with FTraces.Pop do
+    begin
+      Assert.AreEqual('Outer', FScopeName);
+      Assert.AreEqual(TraceEnter, FEventType);
+      Assert.IsTrue(FElapsedTicks > 0);
+    end;
+  FTracer.VerifyAll;
 end;
 
 initialization

@@ -3,8 +3,8 @@ unit Delphi.Profile.AggregateReport;
 interface
 
 uses
-  Delphi.Profile.AggregateInfo,
   Delphi.Profile.CallInfo,
+  Delphi.Profile.AggregateInfo,
   System.Generics.Collections,
   System.Classes;
 
@@ -12,9 +12,7 @@ type
 
   TAggregateReport = class
     private
-      FReportPath         : string;
-      FReportLines        : TStrings;
-      FReportInfo         : TList<TAggregateInfo>;
+      FReportEntries      : TList<TAggregateInfo>;
       FTotalCalls         : TList<Double>;
       FTotalMicroseconds  : TList<Double>;
       FAverageMicroseconds: TList<Double>;
@@ -24,20 +22,18 @@ type
       destructor Destroy; override;
 
       procedure Add(const ACallInfo: TCallInfo);
+      procedure Clear;
       procedure Compute;
-      procedure SaveToFile;
-
-    public
-      property ReportPath: string write FReportPath;
+      procedure GetLines(ALines: TStrings);
   end;
 
 implementation
 
+{ TAggregateReport }
+
 constructor TAggregateReport.Create;
 begin
-  inherited;
-  FReportLines         := TStringList.Create;
-  FReportInfo          := TObjectList<TAggregateInfo>.Create;
+  FReportEntries       := TObjectList<TAggregateInfo>.Create;
   FTotalCalls          := TList<Double>.Create;
   FTotalMicroseconds   := TList<Double>.Create;
   FAverageMicroseconds := TList<Double>.Create;
@@ -45,8 +41,7 @@ end;
 
 destructor TAggregateReport.Destroy;
 begin
-  FReportLines.Free;
-  FReportInfo.Free;
+  FReportEntries.Free;
   FTotalCalls.Free;
   FTotalMicroseconds.Free;
   FAverageMicroseconds.Free;
@@ -60,22 +55,29 @@ begin
   FAverageMicroseconds.Add(ACallInfo.AverageMicroseconds);
 end;
 
-procedure TAggregateReport.Compute;
+procedure TAggregateReport.Clear;
 begin
-  FReportInfo.Add(TAggregateInfo.Create('Total Calls', FTotalCalls.ToArray));
-  FReportInfo.Add(TAggregateInfo.Create('Total Time (us)', FTotalMicroseconds.ToArray));
-  FReportInfo.Add(TAggregateInfo.Create('Average Time (us)', FAverageMicroseconds.ToArray));
+  FTotalCalls.Clear;
+  FTotalMicroseconds.Clear;
+  FAverageMicroseconds.Clear;
 end;
 
-procedure TAggregateReport.SaveToFile;
-var
-  Info: TAggregateInfo;
+procedure TAggregateReport.Compute;
 begin
-  FReportLines.Clear;
-  FReportLines.Add(TAggregateInfo.CommaHeader);
-  for Info in FReportInfo do
-    FReportLines.Add(Info.CommaText);
-  FReportLines.SaveToFile(FReportPath);
+  FReportEntries.Clear;
+  FReportEntries.Add(TAggregateInfo.Create('Total Calls', FTotalCalls.ToArray));
+  FReportEntries.Add(TAggregateInfo.Create('Total Time (us)', FTotalMicroseconds.ToArray));
+  FReportEntries.Add(TAggregateInfo.Create('Average Time (us)', FAverageMicroseconds.ToArray));
+end;
+
+procedure TAggregateReport.GetLines(ALines: TStrings);
+var
+  AggregateInfo: TAggregateInfo;
+begin
+  ALines.Clear;
+  ALines.Add(TAggregateInfo.CommaHeader);
+  for AggregateInfo in FReportEntries do
+    ALines.Add(AggregateInfo.CommaText);
 end;
 
 end.

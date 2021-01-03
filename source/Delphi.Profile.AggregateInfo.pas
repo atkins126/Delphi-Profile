@@ -12,12 +12,19 @@ type
       FMean       : Double;
       FStddev     : Double;
 
-      class function GetMedian(AValues: TArray<Double>): Double;
+      class function GetMedian(var AValues: TArray<Double>): Double;
+      class function GetCommaHeader: string; inline; static;
+      function GetCommaText: string; inline;
 
     public
       constructor Create(const AMeasureName: string; AValues: TArray<Double>);
-      class function CommaHeader: string;
-      function CommaText: string;
+
+      class property CommaHeader: string read GetCommaHeader;
+      property CommaText: string read GetCommaText;
+      property Total: Double read FTotal;
+      property Median: Double read FMedian;
+      property Mean: Double read FMean;
+      property Stddev: Double read FStddev;
   end;
 
 implementation
@@ -26,6 +33,8 @@ uses
   System.Generics.Collections,
   System.SysUtils,
   System.Math;
+
+{ TAggregateInfo }
 
 constructor TAggregateInfo.Create(const AMeasureName: string; AValues: TArray<Double>);
 begin
@@ -38,27 +47,29 @@ begin
     end;
 end;
 
-class function TAggregateInfo.GetMedian(AValues: TArray<Double>): Double;
+class function TAggregateInfo.GetMedian(var AValues: TArray<Double>): Double;
 var
-  len: Integer;
+  Count : Integer;
+  Middle: Integer;
 begin
-  len := Length(AValues);
-  Assert(len > 0);
   TArray.Sort<Double>(AValues);
-  if (len mod 2) = 0 then
-    Result := (AValues[(len div 2) - 1] + AValues[len div 2]) / 2
+  Count    := Length(AValues);
+  Assert(Count > 0);
+  Middle   := Count div 2;
+  if (Count mod 2) = 0 then
+    Result := (AValues[Middle - 1] + AValues[Middle]) / 2
   else
-    Result := AValues[len div 2];
+    Result := AValues[Middle];
 end;
 
-class function TAggregateInfo.CommaHeader: string;
+class function TAggregateInfo.GetCommaHeader: string;
 const
   CHeaderFormat = '"%s","%s","%s","%s","%s"';
 begin
   Result := Format(CHeaderFormat, ['Measure', 'Total', 'Median', 'Mean', 'Standard Deviation']);
 end;
 
-function TAggregateInfo.CommaText: string;
+function TAggregateInfo.GetCommaText: string;
 const
   CTextFormat = '"%s","%.3f","%.3f","%.3f","%.3f"';
 begin

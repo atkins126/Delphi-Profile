@@ -53,10 +53,10 @@
         <Icns_MainIcns>$(BDS)\bin\delphi_PROJECTICNS.icns</Icns_MainIcns>
         <VerInfo_Keys>CompanyName=;FileDescription=$(MSBuildProjectName);FileVersion=1.0.0.0;InternalName=;LegalCopyright=;LegalTrademarks=;OriginalFilename=;ProgramID=com.embarcadero.$(MSBuildProjectName);ProductName=$(MSBuildProjectName);ProductVersion=1.0.0.0;Comments=</VerInfo_Keys>
         <SanitizedProjectName>DelphiProfileUnitTest</SanitizedProjectName>
-        <DCC_Define>TESTINSIGHT;$(DCC_Define)</DCC_Define>
         <DCC_UnitSearchPath>..\modules\DUnitX\Source;..\modules\Delphi-Mocks\Source;..\modules\FastMM4;..\source;$(DCC_UnitSearchPath)</DCC_UnitSearchPath>
         <DCC_DUPLICATE_CTOR_DTOR>false</DCC_DUPLICATE_CTOR_DTOR>
         <DCC_MapFile>3</DCC_MapFile>
+        <DCC_Define>TESTINSIGHT;$(DCC_Define)</DCC_Define>
         <CfgDependentOn>DelphiProfile.optset</CfgDependentOn>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Base_Win32)'!=''">
@@ -98,6 +98,11 @@ $(PostBuildEvent)]]></PostBuildEvent>
             <MainSource>MainSource</MainSource>
         </DelphiCompile>
         <DCCReference Include="..\test\Delphi.Profile.TraceTest.pas"/>
+        <DCCReference Include="..\test\Delphi.Profile.CallInfoTest.pas"/>
+        <DCCReference Include="..\test\Delphi.Profile.AggregateInfoTest.pas"/>
+        <DCCReference Include="..\test\Delphi.Profile.AggregateReportTest.pas"/>
+        <DCCReference Include="..\test\Delphi.Profile.CallReportTest.pas"/>
+        <DCCReference Include="..\test\Delphi.Profile.CallTracerTest.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>
@@ -125,6 +130,12 @@ $(PostBuildEvent)]]></PostBuildEvent>
                 </Excluded_Packages>
             </Delphi.Personality>
             <Deployment Version="3">
+                <DeployFile LocalName="..\build\Win64\Debug\bin\DelphiProfileUnitTest.rsm" Configuration="Debug" Class="DebugSymbols">
+                    <Platform Name="Win64">
+                        <RemoteName>DelphiProfileUnitTest.rsm</RemoteName>
+                        <Overwrite>true</Overwrite>
+                    </Platform>
+                </DeployFile>
                 <DeployFile LocalName="$(BDS)\Redist\osx32\libcgunwind.1.0.dylib" Class="DependencyModule">
                     <Platform Name="OSX32">
                         <Overwrite>true</Overwrite>
@@ -146,13 +157,7 @@ $(PostBuildEvent)]]></PostBuildEvent>
                         <Overwrite>true</Overwrite>
                     </Platform>
                 </DeployFile>
-                <DeployFile LocalName="Win64\Debug\DelphiProfileUnitTest.rsm" Configuration="Debug" Class="DebugSymbols">
-                    <Platform Name="Win64">
-                        <RemoteName>DelphiProfileUnitTest.rsm</RemoteName>
-                        <Overwrite>true</Overwrite>
-                    </Platform>
-                </DeployFile>
-                <DeployFile LocalName="Win64\Debug\DelphiProfileUnitTest.exe" Configuration="Debug" Class="ProjectOutput">
+                <DeployFile LocalName="..\build\Win64\Debug\bin\DelphiProfileUnitTest.exe" Configuration="Debug" Class="ProjectOutput">
                     <Platform Name="Win64">
                         <RemoteName>DelphiProfileUnitTest.exe</RemoteName>
                         <Overwrite>true</Overwrite>

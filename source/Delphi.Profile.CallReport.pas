@@ -3,119 +3,111 @@ unit Delphi.Profile.CallReport;
 interface
 
 uses
-  System.Generics.Collections,
-  System.Generics.Defaults,
-  System.Classes,
   Delphi.Profile.CallInfo,
-  Delphi.Profile.AggregateReport;
+  Delphi.Profile.AggregateReport,
+  System.Generics.Collections,
+  System.Classes;
 
 type
 
-  TCallEntry = TPair<string, TCallInfo>;
+  TReportEntry = TPair<string, TCallInfo>;
 
   TCallReport = class
     private
-      FReportPath     : string;
-      FReportLines    : TStrings;
-      FReportInfo     : TDictionary<string, TCallInfo>;
+      FReportEntries  : TDictionary<string, TCallInfo>;
       FAggregateReport: TAggregateReport;
 
-      function GetSortedEntries: TArray<TCallEntry>;
-      procedure SaveReportToFile;
-      procedure SaveAggregateReportToFile;
-      procedure SetAggregateReportPath(const APath: string);
+      function GetSortedEntries: TArray<TReportEntry>;
+      procedure GetLines(ACallLines: TStrings); overload;
 
     public
       constructor Create;
       destructor Destroy; override;
-      procedure Add(const FunctionName: string; elapsedTicks: Int64);
-      procedure SaveToFile;
 
-    public
-      property ReportPath         : string write FReportPath;
-      property AggregateReportPath: string write SetAggregateReportPath;
-  end;
-
-  TTotalTicksComparer = class(TComparer<TCallEntry>)
-    public
-      function Compare(const Left, Right: TCallEntry): Integer; override;
+      procedure Add(const AScopeName: string; AElapsedTicks: Int64);
+      procedure GetLines(ACallLines, AAggregateLines: TStrings); overload;
   end;
 
 implementation
 
-function TTotalTicksComparer.Compare(const Left, Right: TCallEntry): Integer;
+uses
+  System.Generics.Defaults;
+
+type
+  TTotalTicksComparer = class(TComparer<TReportEntry>)
+    public
+      function Compare(const Left, Right: TReportEntry): Integer; override;
+  end;
+
+{ TTotalTicksComparer }
+
+function TTotalTicksComparer.Compare(const Left, Right: TReportEntry): Integer;
 begin
-  if Left.value.TotalTicks < Right.value.TotalTicks then
+  if Left.Value.TotalTicks < Right.Value.TotalTicks then
     Result := 1 // sort in descending order
-  else if Left.value.TotalTicks > Right.value.TotalTicks then
+  else if Left.Value.TotalTicks > Right.Value.TotalTicks then
     Result := - 1
   else
     Result := 0;
 end;
 
+{ TCallReport }
+
 constructor TCallReport.Create;
 begin
-  FReportLines     := TStringList.Create;
-  FReportInfo      := TObjectDictionary<string, TCallInfo>.Create([doOwnsValues]);
+  FReportEntries   := TObjectDictionary<string, TCallInfo>.Create([doOwnsValues]);
   FAggregateReport := TAggregateReport.Create;
 end;
 
 destructor TCallReport.Destroy;
 begin
-  FReportLines.Free;
-  FReportInfo.Free;
+  FReportEntries.Free;
   FAggregateReport.Free;
   inherited;
 end;
 
-procedure TCallReport.SaveToFile;
+procedure TCallReport.GetLines(ACallLines, AAggregateLines: TStrings);
 begin
-  SaveReportToFile;
-  SaveAggregateReportToFile;
-end;
-
-procedure TCallReport.SetAggregateReportPath(const APath: string);
-begin
-  FAggregateReport.ReportPath := APath;
-end;
-
-procedure TCallReport.SaveReportToFile;
-var
-  entry: TCallEntry;
-begin
-  FReportLines.Clear;
-  FReportLines.Add(TCallInfo.CommaHeader);
-  for entry in GetSortedEntries do
-    FReportLines.Add(entry.value.CommaText);
-  FReportLines.SaveToFile(FReportPath);
-end;
-
-function TCallReport.GetSortedEntries: TArray<TCallEntry>;
-var
-  comparer: IComparer<TCallEntry>;
-begin
-  Result   := FReportInfo.ToArray;
-  comparer := TTotalTicksComparer.Create;
-  TArray.Sort<TCallEntry>(Result, comparer);
-end;
-
-procedure TCallReport.SaveAggregateReportToFile;
-var
-  entry: TCallEntry;
-begin
-  for entry in FReportInfo do
-    FAggregateReport.Add(entry.value);
+  FAggregateReport.Clear;
+  GetLines(ACallLines);
   FAggregateReport.Compute;
-  FAggregateReport.SaveToFile;
+  FAggregateReport.GetLines(AAggregateLines);
 end;
 
-procedure TCallReport.Add(const FunctionName: string; elapsedTicks: Int64);
+procedure TCallReport.GetLines(ACallLines: TStrings);
+var
+  ReportEntry: TReportEntry;
 begin
-  if not FReportInfo.ContainsKey(FunctionName) then
-    FReportInfo.Add(FunctionName, TCallInfo.Create(FunctionName));
-  with FReportInfo[FunctionName] do
+  ACallLines.Clear;
+  ACallLines.Add(TCallInfo.CommaHeader);
+  for ReportEntry in GetSortedEntries do
     begin
-      TotalTicks := TotalTicks + elapsedTicks;
+      ACallLines.Add(ReportEntry.Value.CommaText);
+      FAggregateReport.Add(ReportEntry.Value);
+    end;
+end;
+
+function TCallReport.GetSortedEntries: TArray<TReportEntry>;
+var
+  Comparer: IComparer<TReportEntry>;
+begin
+  Result   := FReportEntries.ToArray;
+  Comparer := TTotalTicksComparer.Create;
+  TArray.Sort<TReportEntry>(Result, Comparer);
+end;
+
+procedure TCallReport.Add(const AScopeName: string; AElapsedTicks: Int64);
+var
+  CallInfo: TCallInfo;
+begin
+  if not FReportEntries.TryGetValue(AScopeName, CallInfo) then
+    begin
+      CallInfo := TCallInfo.Create(AScopeName);
+      FReportEntries.Add(AScopeName, CallInfo);
+    end;
+  with CallInfo do
+    begin
+      TotalTicks := TotalTicks + AElapsedTicks;
       TotalCalls := TotalCalls + 1;
     end;
 end;

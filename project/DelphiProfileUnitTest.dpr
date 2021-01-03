@@ -14,7 +14,12 @@ uses
   DUnitX.Loggers.Xml.JUnit,
   {$ENDIF }
   DUnitX.TestFramework,
-  Delphi.Profile.TraceTest in '..\test\Delphi.Profile.TraceTest.pas';
+  Delphi.Profile.TraceTest in '..\test\Delphi.Profile.TraceTest.pas',
+  Delphi.Profile.CallInfoTest in '..\test\Delphi.Profile.CallInfoTest.pas',
+  Delphi.Profile.AggregateInfoTest in '..\test\Delphi.Profile.AggregateInfoTest.pas',
+  Delphi.Profile.AggregateReportTest in '..\test\Delphi.Profile.AggregateReportTest.pas',
+  Delphi.Profile.CallReportTest in '..\test\Delphi.Profile.CallReportTest.pas',
+  Delphi.Profile.CallTracerTest in '..\test\Delphi.Profile.CallTracerTest.pas';
 
 {$IFNDEF TESTINSIGHT}
 var

@@ -12,10 +12,12 @@ type
 
   TCallTracer = class(TInterfacedObject, ITracer)
     private
-      FTraceInfo : TTraceInfo;
-      FCallStack : TStack<string>;
-      FCallReport: TCallReport;
-      FMutex     : TCriticalSection;
+      FTraceInfo          : TTraceInfo;
+      FCallStack          : TStack<string>;
+      FCallReport         : TCallReport;
+      FCriticalSection    : TCriticalSection;
+      FCallReportPath     : string;
+      FAggregateReportPath: string;
 
       procedure HandleTrace;
       procedure HandleTraceEnter;
@@ -26,40 +28,67 @@ type
     public
       constructor Create;
       destructor Destroy; override;
+
+      procedure SaveReport;
+
+      property CallReportPath: string write FCallReportPath;
+      property AggregateReportPath: string write FAggregateReportPath;
   end;
 
 implementation
 
+uses
+  System.Classes;
+
+{ TCallTracer }
+
 constructor TCallTracer.Create;
 begin
-  FMutex                          := TCriticalSection.Create;
-  FCallStack                      := TStack<string>.Create;
-  FCallReport                     := TCallReport.Create;
-  FCallReport.ReportPath          := 'calls.csv';
-  FCallReport.AggregateReportPath := 'aggregate.csv';
+  FCriticalSection     := TCriticalSection.Create;
+  FCallStack           := TStack<string>.Create;
+  FCallReport          := TCallReport.Create;
+  FCallReportPath      := 'calls.csv';
+  FAggregateReportPath := 'aggregate.csv';
 end;
 
 destructor TCallTracer.Destroy;
 begin
   try
-    FCallReport.SaveToFile;
+    SaveReport;
   except
     // we cannot not raise in destructor
   end;
   FCallReport.Free;
   FCallStack.Free;
-  FMutex.Free;
+  FCriticalSection.Free;
   inherited;
+end;
+
+procedure TCallTracer.SaveReport;
+var
+  CallLines     : TStrings;
+  AggregateLines: TStrings;
+begin
+  CallLines      := TStringList.Create;
+  AggregateLines := TStringList.Create;
+  try
+    FCallReport.GetLines(CallLines, AggregateLines);
+    CallLines.SaveToFile(FCallReportPath);
+    AggregateLines.SaveToFile(FAggregateReportPath);
+  finally
+    CallLines.Free;
+    AggregateLines.Free;
+  end;
 end;
 
 procedure TCallTracer.Log(const ATraceInfo: TTraceInfo);
 begin
-  FMutex.Acquire;
+  FCriticalSection.Acquire;
   try
     FTraceInfo := ATraceInfo;
     HandleTrace;
   finally
-    FMutex.Release;
+    FCriticalSection.Release;
   end;
 end;
 
