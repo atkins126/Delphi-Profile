@@ -33,10 +33,11 @@ type
 
       procedure HandleCreate(Sender: TObject);
 
+      class function ParamOrDefault(AIndex: Integer; const ADefault: string): string;
       function GetHighlightColor(AValue: Double; ACol: Integer): TColor;
-      procedure HighlightCell(const AText: string; ACanvas: TCanvas; ARect: TRect; AColor: TColor);
+      class procedure HighlightCell(const AText: string; ACanvas: TCanvas; ARect: TRect; AColor: TColor);
       procedure LoadGridFromFile(AGrid: TStringGrid; const APath: string);
-      procedure AutoSizeGrid(AGrid: TStringGrid);
+      class procedure AutoSizeGrid(AGrid: TStringGrid);
       procedure InitializeMeansAndStddevs;
       procedure CopySelectionToClipboard(AGrid: TStringGrid);
 
@@ -77,7 +78,7 @@ var
   sValue        : Double;
   highlightColor: TColor;
 begin
-  if (ACol > 1) and (ARow > 0) then
+  if (ACol > 1) and (ARow > 0) and not (gdSelected in State) then
     with Sender as TStringGrid do
       begin
         sValue := StrToFloat(Cells[ACol, ARow]);
@@ -97,7 +98,7 @@ end;
 
 procedure TFormViewer.AggregateGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
 begin
-  if (ACol = 1) and (ARow = 2) then
+  if (ACol = 1) and (ARow = 2) and not (gdSelected in State) then
     with Sender as TStringGrid do
       HighlightCell(Cells[ACol, ARow], Canvas, Rect, clWebLavender);
 end;
@@ -120,7 +121,7 @@ begin
     Result := clCream;
 end;
 
-procedure TFormViewer.HighlightCell(const AText: string; ACanvas: TCanvas; ARect: TRect; AColor: TColor);
+class procedure TFormViewer.HighlightCell(const AText: string; ACanvas: TCanvas; ARect: TRect; AColor: TColor);
 var
   TopOffset: Integer;
 begin
@@ -136,31 +137,28 @@ const
   CTabChar = #9;
 var
   Line: string;
-  I, K: Integer;
+  Row : Integer;
+  Col : Integer;
 begin
-  try
-    with AGrid do
-      for I          := Selection.Top to Selection.Bottom do
+  FLines.Clear;
+  for Row        := AGrid.Selection.Top to AGrid.Selection.Bottom do
+    begin
+      Line       := '';
+      for Col    := AGrid.Selection.Left to AGrid.Selection.Right do
         begin
-          Line       := '';
-          for K      := Selection.Left to Selection.Right do
-            begin
-              Line   := Line + Cells[K, I];
-              if K <> Selection.Right then
-                Line := Line + CTabChar;
-            end;
-          FLines.Add(Line);
+          Line   := Line + AGrid.Cells[Col, Row];
+          if Col <> AGrid.Selection.Right then
+            Line := Line + CTabChar;
         end;
-    Clipboard.AsText := FLines.text;
-  finally
-    FLines.Clear;
-  end;
+      FLines.Add(Line);
+    end;
+  Clipboard.AsText := FLines.text;
 end;
 
 procedure TFormViewer.HandleCreate(Sender: TObject);
 begin
-  LoadGridFromFile(CallsGrid, 'calls.csv');
-  LoadGridFromFile(AggregateGrid, 'aggregate.csv');
+  LoadGridFromFile(CallsGrid, ParamOrDefault(1, 'calls.csv'));
+  LoadGridFromFile(AggregateGrid, ParamOrDefault(2, 'aggregate.csv'));
   AggregateGrid.Cells[1, 1] := Trunc(AggregateGrid.Cells[1, 1].ToDouble).ToString;
   AggregateGrid.Cells[1, 3] := ''; // sum of average time does not make sense
   InitializeMeansAndStddevs;
@@ -168,37 +166,42 @@ end;
 
 procedure TFormViewer.LoadGridFromFile(AGrid: TStringGrid; const APath: string);
 var
-  I: Integer;
+  Row: Integer;
 begin
-  try
-    FLines.LoadFromFile(APath);
-    AGrid.RowCount            := FLines.Count;
-    for I                     := 0 to FLines.Count - 1 do
-      AGrid.Rows[I].CommaText := FLines[I];
-    AutoSizeGrid(AGrid);
-  finally
-    FLines.Clear;
-  end;
+  FLines.LoadFromFile(APath);
+  AGrid.RowCount              := FLines.Count;
+  for Row                     := 0 to FLines.Count - 1 do
+    AGrid.Rows[Row].CommaText := FLines[Row];
+  AutoSizeGrid(AGrid);
 end;
 
-procedure TFormViewer.AutoSizeGrid(AGrid: TStringGrid);
-const
-  CColWidthMin = 10;
-  CColWidthPad = 10;
-var
-  C, R, W    : Integer;
-  ColWidthMax: Integer;
+class function TFormViewer.ParamOrDefault(AIndex: Integer; const ADefault: string): string;
 begin
-  for C                  := 0 to AGrid.ColCount - 1 do
+  if AIndex <= ParamCount then
+    Result := ParamStr(AIndex)
+  else
+    Result := ADefault;
+end;
+
+class procedure TFormViewer.AutoSizeGrid(AGrid: TStringGrid);
+const
+  CWidthMin = 10;
+  CWidthPad = 10;
+var
+  Col, Row: Integer;
+  Width   : Integer;
+  WidthMax: Integer;
+begin
+  for Col                  := 0 to AGrid.ColCount - 1 do
     begin
-      ColWidthMax        := CColWidthMin;
-      for R              := 0 to (AGrid.RowCount - 1) do
+      WidthMax             := CWidthMin;
+      for Row              := 0 to AGrid.RowCount - 1 do
         begin
-          W              := AGrid.Canvas.TextWidth(AGrid.Cells[C, R]);
-          if W > ColWidthMax then
-            ColWidthMax  := W;
+          Width            := AGrid.Canvas.TextWidth(AGrid.Cells[Col, Row]);
+          if Width > WidthMax then
+            WidthMax       := Width;
         end;
-      AGrid.ColWidths[C] := ColWidthMax + CColWidthPad;
+      AGrid.ColWidths[Col] := WidthMax + CWidthPad;
     end;
 end;
 
