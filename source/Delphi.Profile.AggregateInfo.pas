@@ -13,8 +13,8 @@ type
       FStddev     : Double;
 
       class function GetMedian(var AValues: TArray<Double>): Double;
-      class function GetCommaHeader: string; inline; static;
-      function GetCommaText: string; inline;
+      class function GetCommaHeader: string; static;
+      function GetCommaText: string;
 
     public
       constructor Create(const AMeasureName: string; AValues: TArray<Double>);

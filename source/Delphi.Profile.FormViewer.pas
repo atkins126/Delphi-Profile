@@ -18,12 +18,12 @@ uses
 type
 
   TFormViewer = class(TForm)
-    CallsGrid: TStringGrid;
+    PerformanceGrid: TStringGrid;
     AggregateSplitter: TSplitter;
     AggregateGrid: TStringGrid;
-    procedure CallsGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure PerformanceGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
     procedure AggregateGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
-    procedure CallsGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
+    procedure PerformanceGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
     procedure AggregateGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
 
     private
@@ -72,7 +72,7 @@ begin
   inherited;
 end;
 
-procedure TFormViewer.CallsGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect;
+procedure TFormViewer.PerformanceGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect;
   State: TGridDrawState);
 var
   sValue        : Double;
@@ -90,10 +90,10 @@ begin
       end;
 end;
 
-procedure TFormViewer.CallsGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
+procedure TFormViewer.PerformanceGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
 begin
   if (ssCtrl in Shift) and (Key = Ord('C')) then
-    CopySelectionToClipboard(CallsGrid);
+    CopySelectionToClipboard(PerformanceGrid);
 end;
 
 procedure TFormViewer.AggregateGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
@@ -157,7 +157,7 @@ end;
 
 procedure TFormViewer.HandleCreate(Sender: TObject);
 begin
-  LoadGridFromFile(CallsGrid, ParamOrDefault(1, 'calls.csv'));
+  LoadGridFromFile(PerformanceGrid, ParamOrDefault(1, 'performance.csv'));
   LoadGridFromFile(AggregateGrid, ParamOrDefault(2, 'aggregate.csv'));
   AggregateGrid.Cells[1, 1] := Trunc(AggregateGrid.Cells[1, 1].ToDouble).ToString;
   AggregateGrid.Cells[1, 3] := ''; // sum of average time does not make sense

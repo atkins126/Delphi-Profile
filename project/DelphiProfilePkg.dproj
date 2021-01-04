@@ -99,11 +99,12 @@ $(PreBuildEvent)]]></PreBuildEvent>
         <DCCReference Include="rtl.dcp"/>
         <DCCReference Include="..\source\Delphi.Profile.AggregateInfo.pas"/>
         <DCCReference Include="..\source\Delphi.Profile.AggregateReport.pas"/>
-        <DCCReference Include="..\source\Delphi.Profile.CallInfo.pas"/>
-        <DCCReference Include="..\source\Delphi.Profile.CallReport.pas"/>
-        <DCCReference Include="..\source\Delphi.Profile.CallTracer.pas"/>
+        <DCCReference Include="..\source\Delphi.Profile.ScopeInfo.pas"/>
+        <DCCReference Include="..\source\Delphi.Profile.PerformanceReport.pas"/>
+        <DCCReference Include="..\source\Delphi.Profile.PerformanceTracer.pas"/>
         <DCCReference Include="..\source\Delphi.Profile.Trace.pas"/>
         <DCCReference Include="..\source\Delphi.Profile.pas"/>
+        <DCCReference Include="..\source\Delphi.Profile.PerformanceCounter.pas"/>
         <BuildConfiguration Include="Release">
             <Key>Cfg_2</Key>
             <CfgParent>Base</CfgParent>

@@ -23,7 +23,7 @@ object FormViewer: TFormViewer
     ExplicitTop = 0
     ExplicitWidth = 761
   end
-  object CallsGrid: TStringGrid
+  object PerformanceGrid: TStringGrid
     Left = 0
     Top = 0
     Width = 584
@@ -34,8 +34,8 @@ object FormViewer: TFormViewer
     FixedCols = 0
     RowCount = 4
     TabOrder = 0
-    OnDrawCell = CallsGridDrawCell
-    OnKeyDown = CallsGridKeyDown
+    OnDrawCell = PerformanceGridDrawCell
+    OnKeyDown = PerformanceGridKeyDown
   end
   object AggregateGrid: TStringGrid
     Left = 0

@@ -16,11 +16,12 @@ uses
   {$ENDIF }
   DUnitX.TestFramework,
   Delphi.Profile.TraceTest in '..\test\Delphi.Profile.TraceTest.pas',
-  Delphi.Profile.CallInfoTest in '..\test\Delphi.Profile.CallInfoTest.pas',
+  Delphi.Profile.ScopeInfoTest in '..\test\Delphi.Profile.ScopeInfoTest.pas',
   Delphi.Profile.AggregateInfoTest in '..\test\Delphi.Profile.AggregateInfoTest.pas',
   Delphi.Profile.AggregateReportTest in '..\test\Delphi.Profile.AggregateReportTest.pas',
-  Delphi.Profile.CallReportTest in '..\test\Delphi.Profile.CallReportTest.pas',
-  Delphi.Profile.CallTracerTest in '..\test\Delphi.Profile.CallTracerTest.pas';
+  Delphi.Profile.PerformanceReportTest in '..\test\Delphi.Profile.PerformanceReportTest.pas',
+  Delphi.Profile.PerformanceTracerTest in '..\test\Delphi.Profile.PerformanceTracerTest.pas',
+  Delphi.Profile.PerformanceCounterTest in '..\test\Delphi.Profile.PerformanceCounterTest.pas';
 
 {$IFNDEF TESTINSIGHT}
 var

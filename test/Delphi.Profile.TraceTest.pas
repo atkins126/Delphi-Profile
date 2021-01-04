@@ -6,13 +6,14 @@ uses
   DUnitX.TestFramework,
   Delphi.Mocks,
   Delphi.Profile.Trace,
+  Delphi.Profile.PerformanceCounter,
   System.Generics.Collections;
 
 type
 
   TTraceEvent = record
     FEventType: (TraceEnter, TraceLeave);
-    FElapsedTicks: Int64;
+    FMetrics: TPerformanceMetrics;
     FScopeName: string;
   end;
 
@@ -57,23 +58,24 @@ end;
 
 procedure TTraceTest.SetupMock;
 begin
-  FTracer.Setup.WillExecute('OnEnter',
+  FTracer.Setup.WillExecute('OnEnterScope',
       function(const args: TArray<TValue>; const ReturnType: TRttiType): TValue
     var
       Event: TTraceEvent;
     begin
       Event.FEventType := TraceEnter;
-      Event.FElapsedTicks := args[1].AsType<Int64>();
+      Event.FMetrics := args[1].AsType<TPerformanceMetrics>();
       Event.FScopeName := args[2].AsType<string>();
       FTraces.Push(Event);
+      Result := True;
     end);
-  FTracer.Setup.WillExecute('OnLeave',
+  FTracer.Setup.WillExecute('OnLeaveScope',
     function(const args: TArray<TValue>; const ReturnType: TRttiType): TValue
     var
       Event: TTraceEvent;
     begin
       Event.FEventType := TraceLeave;
-      Event.FElapsedTicks := args[1].AsType<Int64>();
+      Event.FMetrics := args[1].AsType<TPerformanceMetrics>();
       FTraces.Push(Event);
     end);
 end;
@@ -87,8 +89,8 @@ end;
 procedure TTraceTest.TestSetTrace;
 begin
   TTrace.Tracer := nil;
-  FTracer.Setup.Expect.Never('OnEnter');
-  FTracer.Setup.Expect.Never('OnLeave');
+  FTracer.Setup.Expect.Never('OnEnterScope');
+  FTracer.Setup.Expect.Never('OnLeaveScope');
   begin
     TTrace.Create(''); // luckily, Delphi saves the returned trace in the nested scope stack
   end;
@@ -99,8 +101,8 @@ end;
 
 procedure TTraceTest.TestTrace(const AScopeName: string);
 begin
-  FTracer.Setup.Expect.Once('OnEnter');
-  FTracer.Setup.Expect.Once('OnLeave');
+  FTracer.Setup.Expect.Once('OnEnterScope');
+  FTracer.Setup.Expect.Once('OnLeaveScope');
   begin
     TTrace.Create(AScopeName); // count number of ticks spent in this block
   end;
@@ -108,13 +110,12 @@ begin
   with FTraces.Pop do
     begin
       Assert.AreEqual(TraceLeave, FEventType);
-      Assert.IsTrue(FElapsedTicks < 3);
+      Assert.IsTrue(FMetrics.FElapsedTicks < 3);
     end;
   with FTraces.Pop do
     begin
       Assert.AreEqual(AScopeName, FScopeName);
       Assert.AreEqual(TraceEnter, FEventType);
-      Assert.IsTrue(FElapsedTicks > 1000);
     end;
   FTracer.VerifyAll;
   Assert.IsNotNull(TTrace.Create('')); // in this case, the trace will be saved in the function stack
@@ -122,8 +123,8 @@ end;
 
 procedure TTraceTest.TestNestedTrace;
 begin
-  FTracer.Setup.Expect.Exactly('OnEnter', 2);
-  FTracer.Setup.Expect.Exactly('OnLeave', 2);
+  FTracer.Setup.Expect.Exactly('OnEnterScope', 2);
+  FTracer.Setup.Expect.Exactly('OnLeaveScope', 2);
   begin
     TTrace.Create('Outer');
     begin
@@ -134,24 +135,23 @@ begin
   with FTraces.Pop do
     begin
       Assert.AreEqual(TraceLeave, FEventType);
-      Assert.IsTrue(FElapsedTicks < 3);
+      Assert.IsTrue(FMetrics.FElapsedTicks < 3);
     end;
   with FTraces.Pop do
     begin
       Assert.AreEqual(TraceLeave, FEventType);
-      Assert.IsTrue(FElapsedTicks < 3);
+      Assert.IsTrue(FMetrics.FElapsedTicks < 3);
     end;
   with FTraces.Pop do
     begin
       Assert.AreEqual('Inner', FScopeName);
       Assert.AreEqual(TraceEnter, FEventType);
-      Assert.IsTrue(FElapsedTicks < 3);
+      Assert.IsTrue(FMetrics.FElapsedTicks < 3);
     end;
   with FTraces.Pop do
     begin
       Assert.AreEqual('Outer', FScopeName);
       Assert.AreEqual(TraceEnter, FEventType);
-      Assert.IsTrue(FElapsedTicks > 1000);
     end;
   FTracer.VerifyAll;
 end;

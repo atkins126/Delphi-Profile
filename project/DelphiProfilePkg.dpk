@@ -33,10 +33,11 @@ requires
 contains
   Delphi.Profile.AggregateInfo in '..\source\Delphi.Profile.AggregateInfo.pas',
   Delphi.Profile.AggregateReport in '..\source\Delphi.Profile.AggregateReport.pas',
-  Delphi.Profile.CallInfo in '..\source\Delphi.Profile.CallInfo.pas',
-  Delphi.Profile.CallReport in '..\source\Delphi.Profile.CallReport.pas',
-  Delphi.Profile.CallTracer in '..\source\Delphi.Profile.CallTracer.pas',
+  Delphi.Profile.ScopeInfo in '..\source\Delphi.Profile.ScopeInfo.pas',
+  Delphi.Profile.PerformanceReport in '..\source\Delphi.Profile.PerformanceReport.pas',
+  Delphi.Profile.PerformanceTracer in '..\source\Delphi.Profile.PerformanceTracer.pas',
   Delphi.Profile.Trace in '..\source\Delphi.Profile.Trace.pas',
-  Delphi.Profile in '..\source\Delphi.Profile.pas';
+  Delphi.Profile in '..\source\Delphi.Profile.pas',
+  Delphi.Profile.PerformanceCounter in '..\source\Delphi.Profile.PerformanceCounter.pas';
 
 end.

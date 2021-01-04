@@ -1,37 +1,37 @@
-unit Delphi.Profile.CallReport;
+unit Delphi.Profile.PerformanceReport;
 
 interface
 
 uses
-  Delphi.Profile.CallInfo,
+  Delphi.Profile.PerformanceCounter,
+  Delphi.Profile.ScopeInfo,
   Delphi.Profile.AggregateReport,
   System.Generics.Collections,
   System.Classes;
 
 type
 
-  TReportEntry = TPair<string, TCallInfo>;
+  TReportEntry = TPair<string, TScopeInfo>;
 
-  TCallReport = class
+  TPerformanceReport = class
     private
-      FReportEntries  : TDictionary<string, TCallInfo>;
+      FReportEntries  : TDictionary<string, TScopeInfo>;
       FAggregateReport: TAggregateReport;
 
       function GetSortedEntries: TArray<TReportEntry>;
-      procedure GetLines(ACallLines: TStrings); overload;
+      procedure GetLines(ALines: TStrings); overload;
 
     public
       constructor Create;
       destructor Destroy; override;
 
-      procedure Add(const AScopeName: string; AElapsedTicks: Int64);
-      procedure GetLines(ACallLines, AAggregateLines: TStrings); overload;
+      procedure Add(const AScopeName: string; AMetrics: TPerformanceMetrics);
+      procedure GetLines(APerformanceLines, AAggregateLines: TStrings); overload;
   end;
 
 implementation
 
 uses
-  System.SysUtils,
   System.Generics.Defaults;
 
 type
@@ -52,43 +52,43 @@ begin
     Result := 0;
 end;
 
-{ TCallReport }
+{ TPerformanceReport }
 
-constructor TCallReport.Create;
+constructor TPerformanceReport.Create;
 begin
-  FReportEntries   := TObjectDictionary<string, TCallInfo>.Create([doOwnsValues]);
+  FReportEntries   := TObjectDictionary<string, TScopeInfo>.Create([doOwnsValues]);
   FAggregateReport := TAggregateReport.Create;
 end;
 
-destructor TCallReport.Destroy;
+destructor TPerformanceReport.Destroy;
 begin
   FReportEntries.Free;
   FAggregateReport.Free;
   inherited;
 end;
 
-procedure TCallReport.GetLines(ACallLines, AAggregateLines: TStrings);
+procedure TPerformanceReport.GetLines(APerformanceLines, AAggregateLines: TStrings);
 begin
   FAggregateReport.Clear;
-  GetLines(ACallLines);
+  GetLines(APerformanceLines);
   FAggregateReport.Compute;
   FAggregateReport.GetLines(AAggregateLines);
 end;
 
-procedure TCallReport.GetLines(ACallLines: TStrings);
+procedure TPerformanceReport.GetLines(ALines: TStrings);
 var
   ReportEntry: TReportEntry;
 begin
-  ACallLines.Clear;
-  ACallLines.Add(TCallInfo.CommaHeader);
+  ALines.Clear;
+  ALines.Add(TScopeInfo.CommaHeader);
   for ReportEntry in GetSortedEntries do
     begin
-      ACallLines.Add(ReportEntry.Value.CommaText);
+      ALines.Add(ReportEntry.Value.CommaText);
       FAggregateReport.Add(ReportEntry.Value);
     end;
 end;
 
-function TCallReport.GetSortedEntries: TArray<TReportEntry>;
+function TPerformanceReport.GetSortedEntries: TArray<TReportEntry>;
 var
   Comparer: IComparer<TReportEntry>;
 begin
@@ -97,19 +97,19 @@ begin
   TArray.Sort<TReportEntry>(Result, Comparer);
 end;
 
-procedure TCallReport.Add(const AScopeName: string; AElapsedTicks: Int64);
+procedure TPerformanceReport.Add(const AScopeName: string; AMetrics: TPerformanceMetrics);
 var
-  CallInfo: TCallInfo;
+  ScopeInfo: TScopeInfo;
 begin
-  if not FReportEntries.TryGetValue(AScopeName, CallInfo) then
+  if not FReportEntries.TryGetValue(AScopeName, ScopeInfo) then
     begin
-      CallInfo := TCallInfo.Create(AScopeName);
-      FReportEntries.Add(AScopeName, CallInfo);
+      ScopeInfo := TScopeInfo.Create(AScopeName);
+      FReportEntries.Add(AScopeName, ScopeInfo);
     end;
-  with CallInfo do
+  with ScopeInfo do
     begin
-      TotalTicks := TotalTicks + AElapsedTicks;
-      TotalCalls := TotalCalls + 1;
+      TotalTicks := TotalTicks + AMetrics.FElapsedTicks;
+      TotalHits  := TotalHits + 1;
     end;
 end;
 
