@@ -3,7 +3,7 @@ unit Delphi.Profile.CallTracer;
 interface
 
 uses
-  Delphi.Profile,
+  Delphi.Profile.Trace,
   Delphi.Profile.CallReport,
   System.Generics.Collections,
   System.SyncObjs;
@@ -12,18 +12,14 @@ type
 
   TCallTracer = class(TInterfacedObject, ITracer)
     private
-      FTraceInfo          : TTraceInfo;
       FCallStack          : TStack<string>;
       FCallReport         : TCallReport;
       FCriticalSection    : TCriticalSection;
       FCallReportPath     : string;
       FAggregateReportPath: string;
 
-      procedure HandleTrace;
-      procedure HandleTraceEnter;
-      procedure HandleTraceLeave;
-
-      procedure Log(const ATraceInfo: TTraceInfo);
+      procedure OnEnter(AElapsedTicks: Int64; const AScopeName: string);
+      procedure OnLeave(AElapsedTicks: Int64);
 
     public
       constructor Create;
@@ -38,8 +34,7 @@ type
 implementation
 
 uses
-  System.Classes,
-  Delphi.Profile.Trace;
+  System.Classes;
 
 { TCallTracer }
 
@@ -82,37 +77,27 @@ begin
   end;
 end;
 
-procedure TCallTracer.Log(const ATraceInfo: TTraceInfo);
+procedure TCallTracer.OnEnter(AElapsedTicks: Int64; const AScopeName: string);
 begin
   FCriticalSection.Acquire;
   try
-    FTraceInfo := ATraceInfo;
-    HandleTrace;
+    if FCallStack.Count > 0 then
+      FCallReport.Add(FCallStack.Peek, AElapsedTicks);
+    FCallStack.Push(AScopeName);
   finally
     FCriticalSection.Release;
   end;
 end;
 
-procedure TCallTracer.HandleTrace;
+procedure TCallTracer.OnLeave(AElapsedTicks: Int64);
 begin
-  if FTraceInfo.FEventType = TraceEnter then
-    HandleTraceEnter
-  else
-    HandleTraceLeave;
-end;
-
-procedure TCallTracer.HandleTraceEnter;
-begin
-  if FCallStack.Count > 0 then
-    FCallReport.Add(FCallStack.Peek, FTraceInfo.FElapsedTicks);
-  FCallStack.Push(FTraceInfo.FScopeName);
-end;
-
-procedure TCallTracer.HandleTraceLeave;
-begin
-  Assert(FCallStack.Count > 0);
-  Assert(FCallStack.Peek = FTraceInfo.FScopeName);
-  FCallReport.Add(FCallStack.Pop, FTraceInfo.FElapsedTicks);
+  FCriticalSection.Acquire;
+  try
+    Assert(FCallStack.Count > 0);
+    FCallReport.Add(FCallStack.Pop, AElapsedTicks);
+  finally
+    FCriticalSection.Release;
+  end;
 end;
 
 initialization

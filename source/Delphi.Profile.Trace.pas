@@ -2,31 +2,27 @@ unit Delphi.Profile.Trace;
 
 interface
 
-uses
-  Delphi.Profile;
-
 type
+
+{$M+} // Enable RTTI for use in the unit tests
+
+  ITracer = interface
+    procedure OnEnter(AElapsedTicks: Int64; const AScopeName: string);
+    procedure OnLeave(AElapsedTicks: Int64);
+  end;
+
+{$M-}
 
   TTrace = class(TInterfacedObject, IInterface)
     private
-      FTraceInfo                   : TTraceInfo;
-      class threadvar FStartTime   : Int64;
-      class threadvar FElapsedTicks: Int64;
-      class var FTracer            : ITracer;
+      class threadvar FStartTime: Int64;
+      class var FTracer         : ITracer;
 
-      class procedure StartClock; inline;
-      class procedure StopClock; inline;
-
-      function _AddRef: Integer; stdcall;
       function _Release: Integer; stdcall;
 
     public
-      class function NewInstance: TObject; override; final;
-
-      constructor Create(const AScopeName: string);
-      destructor Destroy; override; final;
-
-      class property Tracer: ITracer read FTracer write FTracer;
+      class property Tracer: ITracer write FTracer;
+      class function Create(const AScopeName: string): IInterface;
   end;
 
 implementation
@@ -36,50 +32,34 @@ uses
 
 { TTrace }
 
-class procedure TTrace.StartClock;
-begin
-  FStartTime := TStopwatch.GetTimeStamp;
-end;
-
-class procedure TTrace.StopClock;
-begin
-  FElapsedTicks := TStopwatch.GetTimeStamp - FStartTime;
-end;
-
-class function TTrace.NewInstance: TObject;
-begin
-  StopClock;
-  Result := inherited;
-end;
-
-function TTrace._AddRef: Integer;
-begin
-  Result := inherited;
-  Assert(Result = 1, 'The trace object should not be referenced in client code');
-  StartClock;
-end;
-
 function TTrace._Release: Integer;
+var
+  ElapsedTicks: Int64;
 begin
-  StopClock;
-  Result := inherited;
-  Assert(Result = 0, 'The trace object should not be referenced in client code');
-  StartClock;
+  ElapsedTicks := TStopwatch.GetTimeStamp - FStartTime;
+  Result       := inherited;
+  if Result = 0 then
+    try
+      FTracer.OnLeave(ElapsedTicks);
+    finally
+      FStartTime := TStopwatch.GetTimeStamp;
+    end;
 end;
 
-constructor TTrace.Create(const AScopeName: string);
+class function TTrace.Create(const AScopeName: string): IInterface;
+var
+  ElapsedTicks: Int64;
 begin
-  FTraceInfo.FScopeName    := AScopeName;
-  FTraceInfo.FEventType    := TraceEnter;
-  FTraceInfo.FElapsedTicks := FElapsedTicks;
-  FTracer.Log(FTraceInfo);
-end;
-
-destructor TTrace.Destroy;
-begin
-  FTraceInfo.FEventType    := TraceLeave;
-  FTraceInfo.FElapsedTicks := FElapsedTicks;
-  FTracer.Log(FTraceInfo);
+  ElapsedTicks := TStopwatch.GetTimeStamp - FStartTime;
+  if Assigned(FTracer) then
+    try
+      Result := inherited Create;
+      FTracer.OnEnter(ElapsedTicks, AScopeName);
+    finally
+      FStartTime := TStopwatch.GetTimeStamp;
+    end
+  else
+    Result := nil;
 end;
 
 initialization
