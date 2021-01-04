@@ -90,10 +90,11 @@ begin
   FTracer.Setup.Expect.Never('OnEnter');
   FTracer.Setup.Expect.Never('OnLeave');
   begin
-    TTrace.Create('');
+    TTrace.Create(''); // luckily, Delphi saves the returned trace in the nested scope stack
   end;
   Assert.AreEqual(0, FTraces.Count);
   FTracer.VerifyAll;
+  Assert.IsNull(TTrace.Create('')); // in this case, the trace will be saved in the function stack
 end;
 
 procedure TTraceTest.TestTrace(const AScopeName: string);
@@ -116,6 +117,7 @@ begin
       Assert.IsTrue(FElapsedTicks > 1000);
     end;
   FTracer.VerifyAll;
+  Assert.IsNotNull(TTrace.Create('')); // in this case, the trace will be saved in the function stack
 end;
 
 procedure TTraceTest.TestNestedTrace;

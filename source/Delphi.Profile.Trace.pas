@@ -16,7 +16,7 @@ type
   TTrace = class(TInterfacedObject, IInterface)
     private
       class threadvar FStartTime: Int64;
-      class var FTracer         : ITracer;
+      class var FTracer: ITracer; // not protected by mutex because it should be set once during program initialization
 
       function _Release: Integer; stdcall;
 
@@ -51,15 +51,14 @@ var
   ElapsedTicks: Int64;
 begin
   ElapsedTicks := TStopwatch.GetTimeStamp - FStartTime;
+  Result       := nil;
   if Assigned(FTracer) then
     try
-      Result := inherited Create;
       FTracer.OnEnter(ElapsedTicks, AScopeName);
     finally
+      Result     := inherited Create; // a trace is created even if the notification raises
       FStartTime := TStopwatch.GetTimeStamp;
-    end
-  else
-    Result := nil;
+    end;
 end;
 
 initialization
