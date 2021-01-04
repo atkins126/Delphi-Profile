@@ -17,6 +17,7 @@ type
       FCallStack          : TStack<string>;
       FPerformanceReport  : TPerformanceReport;
       FCriticalSection    : TCriticalSection;
+      FUseScopeFilter     : Boolean;
       FScopeFilter        : TRegEx;
       FReportPath         : string;
       FAggregateReportPath: string;
@@ -40,6 +41,7 @@ type
 implementation
 
 uses
+  System.SysUtils,
   System.Classes;
 
 { TPerformanceTracer }
@@ -49,7 +51,6 @@ begin
   FCriticalSection     := TCriticalSection.Create;
   FCallStack           := TStack<string>.Create;
   FPerformanceReport   := TPerformanceReport.Create;
-  FScopeFilter         := TRegEx.Create('.*');
   FReportPath          := 'performance.csv';
   FAggregateReportPath := 'aggregate.csv';
 end;
@@ -86,12 +87,14 @@ end;
 
 procedure TPerformanceTracer.SetScopeFilter(const APattern: string);
 begin
-  FScopeFilter := TRegEx.Create(APattern);
+  FUseScopeFilter := not APattern.IsEmpty;
+  if FUseScopeFilter then
+    FScopeFilter  := TRegEx.Create(APattern);
 end;
 
 function TPerformanceTracer.OnEnterScope(AMetrics: TPerformanceMetrics; const AScopeName: string): Boolean;
 begin
-  Result := FScopeFilter.IsMatch(AScopeName);
+  Result := (not FUseScopeFilter) or FScopeFilter.IsMatch(AScopeName);
   if Result then
     begin
       FCriticalSection.Acquire;
