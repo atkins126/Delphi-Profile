@@ -12,9 +12,11 @@ uses
 
 type
 
+  TCallStack = TStack<string>;
+
   TPerformanceTracer = class(TInterfacedObject, ITracer)
     private
-      FCallStack          : TStack<string>;
+      FCallStacks         : TDictionary<TThreadID, TCallStack>;
       FPerformanceReport  : TPerformanceReport;
       FCriticalSection    : TCriticalSection;
       FUseScopeFilter     : Boolean;
@@ -25,6 +27,7 @@ type
       function OnEnterScope(const AMetrics: TPerformanceMetrics; const AScopeName: string): Boolean;
       procedure OnLeaveScope(const AMetrics: TPerformanceMetrics);
 
+      function GetCallStack(AThreadID: TThreadID): TCallStack;
       procedure SetScopeFilter(const APattern: string);
 
     public
@@ -49,7 +52,7 @@ uses
 constructor TPerformanceTracer.Create;
 begin
   FCriticalSection     := TCriticalSection.Create;
-  FCallStack           := TStack<string>.Create;
+  FCallStacks          := TObjectDictionary<TThreadID, TCallStack>.Create([doOwnsValues]);
   FPerformanceReport   := TPerformanceReport.Create;
   FReportPath          := 'performance.csv';
   FAggregateReportPath := 'aggregate.csv';
@@ -63,7 +66,7 @@ begin
     // we cannot not raise in destructor
   end;
   FPerformanceReport.Free;
-  FCallStack.Free;
+  FCallStacks.Free;
   FCriticalSection.Free;
   inherited;
 end;
@@ -98,22 +101,35 @@ begin
   try
     Result := (not FUseScopeFilter) or FScopeFilter.IsMatch(AScopeName);
     if Result then
-      begin
-        if FCallStack.Count > 0 then
-          FPerformanceReport.Add(FCallStack.Peek, AMetrics);
-        FCallStack.Push(AScopeName);
-      end;
+      with GetCallStack(TThread.Current.ThreadID) do
+        begin
+          if Count > 0 then
+            FPerformanceReport.Add(Peek, AMetrics);
+          Push(AScopeName);
+        end;
   finally
     FCriticalSection.Release;
   end;
+end;
+
+function TPerformanceTracer.GetCallStack(AThreadID: TThreadID): TCallStack;
+begin
+  if not FCallStacks.TryGetValue(AThreadID, Result) then
+    begin
+      Result := TCallStack.Create;
+      FCallStacks.Add(AThreadID, Result);
+    end;
 end;
 
 procedure TPerformanceTracer.OnLeaveScope(const AMetrics: TPerformanceMetrics);
 begin
   FCriticalSection.Acquire;
   try
-    Assert(FCallStack.Count > 0);
-    FPerformanceReport.Add(FCallStack.Pop, AMetrics);
+    with GetCallStack(TThread.Current.ThreadID) do
+      begin
+        Assert(Count > 0);
+        FPerformanceReport.Add(Pop, AMetrics);
+      end;
   finally
     FCriticalSection.Release;
   end;

@@ -16,7 +16,7 @@ type
 
 {$M-}
 
-  TTrace = class(TInterfacedObject, IInterface)
+  TTrace = class sealed(TInterfacedObject, IInterface)
     private
       class var FTracer: ITracer; // set once during program initialization
 
