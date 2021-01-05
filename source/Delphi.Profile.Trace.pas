@@ -10,15 +10,15 @@ type
 {$M+} // Enable RTTI for use in the unit tests
 
   ITracer = interface
-    function OnEnterScope(AMetrics: TPerformanceMetrics; const AScopeName: string): Boolean;
-    procedure OnLeaveScope(AMetrics: TPerformanceMetrics);
+    function OnEnterScope(const AMetrics: TPerformanceMetrics; const AScopeName: string): Boolean;
+    procedure OnLeaveScope(const AMetrics: TPerformanceMetrics);
   end;
 
 {$M-}
 
   TTrace = class(TInterfacedObject, IInterface)
     private
-      class var FTracer: ITracer; // not protected by mutex because it should be set once during program initialization
+      class var FTracer: ITracer; // set once during program initialization
 
       function _Release: Integer; stdcall;
 
@@ -37,7 +37,7 @@ begin
   Result := AtomicDecrement(FRefCount);
   if Result = 0 then
     try
-      FTracer.OnLeaveScope(TPerformanceCounter.GetMetrics);
+      FTracer.OnLeaveScope(TPerformanceCounter.GetElapsedMetrics);
     finally
       __MarkDestroying(Self);
       Destroy;
@@ -47,12 +47,13 @@ end;
 
 class function TTrace.Create(const AScopeName: string): IInterface;
 begin
-  Result := nil;
-  if Assigned(FTracer) and FTracer.OnEnterScope(TPerformanceCounter.GetMetrics, AScopeName) then
+  if Assigned(FTracer) and FTracer.OnEnterScope(TPerformanceCounter.GetElapsedMetrics, AScopeName) then
     begin
       Result := inherited Create; // create a trace only if the scope name is not filtered by the tracer
       TPerformanceCounter.Start;  // start counting performance only if the trace was created
-    end;
+    end
+  else
+    Result := nil;
 end;
 
 end.

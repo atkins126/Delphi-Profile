@@ -25,6 +25,10 @@ type
 
       procedure SetupMock;
 
+    const
+      CMaximumTickCount        = 3;
+      CMaximumTickCountWithWmi = 10;
+
     public
       [Setup]
       procedure Setup;
@@ -35,9 +39,10 @@ type
       procedure TestSetTrace;
 
       [Test]
-      [TestCase('Empty scope name', '')]
-      [TestCase('Non-empty scope name', 'abcdefghijklmnopqrstuvwxyz')]
-      procedure TestTrace(const AScopeName: string);
+      procedure TestTrace;
+
+      [Test]
+      procedure TestTraceWithWmi;
 
       [Test]
       procedure TestNestedTrace;
@@ -54,6 +59,8 @@ begin
   FTraces       := TStack<TTraceEvent>.Create;
   TTrace.Tracer := FTracer;
   SetupMock;
+
+  TPerformanceCounter.EnableWmi := False;
 end;
 
 procedure TTraceTest.SetupMock;
@@ -99,26 +106,48 @@ begin
   Assert.IsNull(TTrace.Create('')); // in this case, the trace will be saved in the function stack
 end;
 
-procedure TTraceTest.TestTrace(const AScopeName: string);
+procedure TTraceTest.TestTrace;
 begin
   FTracer.Setup.Expect.Once('OnEnterScope');
   FTracer.Setup.Expect.Once('OnLeaveScope');
   begin
-    TTrace.Create(AScopeName); // count number of ticks spent in this block
+    TTrace.Create('abcdefghijklmnopqrstuvwxyz'); // count number of ticks spent in this block
   end;
   Assert.AreEqual(2, FTraces.Count);
   with FTraces.Pop do
     begin
       Assert.AreEqual(TraceLeave, FEventType);
-      Assert.IsTrue(FMetrics.FElapsedTicks < 3);
+      Assert.IsTrue(FMetrics.FRealClockTime < CMaximumTickCount);
     end;
   with FTraces.Pop do
     begin
-      Assert.AreEqual(AScopeName, FScopeName);
+      Assert.AreEqual('abcdefghijklmnopqrstuvwxyz', FScopeName);
       Assert.AreEqual(TraceEnter, FEventType);
     end;
   FTracer.VerifyAll;
   Assert.IsNotNull(TTrace.Create('')); // in this case, the trace will be saved in the function stack
+end;
+
+procedure TTraceTest.TestTraceWithWmi;
+begin
+  FTracer.Setup.Expect.Once('OnEnterScope');
+  FTracer.Setup.Expect.Once('OnLeaveScope');
+  TPerformanceCounter.EnableWmi := True;
+  begin
+    TTrace.Create(''); // count number of ticks spent in this block
+  end;
+  Assert.AreEqual(2, FTraces.Count);
+  with FTraces.Pop do
+    begin
+      Assert.AreEqual(TraceLeave, FEventType);
+      Assert.IsTrue(FMetrics.FRealClockTime < CMaximumTickCountWithWmi);
+    end;
+  with FTraces.Pop do
+    begin
+      Assert.AreEqual('', FScopeName);
+      Assert.AreEqual(TraceEnter, FEventType);
+    end;
+  FTracer.VerifyAll;
 end;
 
 procedure TTraceTest.TestNestedTrace;
@@ -135,18 +164,18 @@ begin
   with FTraces.Pop do
     begin
       Assert.AreEqual(TraceLeave, FEventType);
-      Assert.IsTrue(FMetrics.FElapsedTicks < 3);
+      Assert.IsTrue(FMetrics.FRealClockTime < CMaximumTickCount);
     end;
   with FTraces.Pop do
     begin
       Assert.AreEqual(TraceLeave, FEventType);
-      Assert.IsTrue(FMetrics.FElapsedTicks < 3);
+      Assert.IsTrue(FMetrics.FRealClockTime < CMaximumTickCount);
     end;
   with FTraces.Pop do
     begin
       Assert.AreEqual('Inner', FScopeName);
       Assert.AreEqual(TraceEnter, FEventType);
-      Assert.IsTrue(FMetrics.FElapsedTicks < 3);
+      Assert.IsTrue(FMetrics.FRealClockTime < CMaximumTickCount);
     end;
   with FTraces.Pop do
     begin

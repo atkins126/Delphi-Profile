@@ -22,8 +22,8 @@ type
       FReportPath         : string;
       FAggregateReportPath: string;
 
-      function OnEnterScope(AMetrics: TPerformanceMetrics; const AScopeName: string): Boolean;
-      procedure OnLeaveScope(AMetrics: TPerformanceMetrics);
+      function OnEnterScope(const AMetrics: TPerformanceMetrics; const AScopeName: string): Boolean;
+      procedure OnLeaveScope(const AMetrics: TPerformanceMetrics);
 
       procedure SetScopeFilter(const APattern: string);
 
@@ -92,23 +92,23 @@ begin
     FScopeFilter  := TRegEx.Create(APattern);
 end;
 
-function TPerformanceTracer.OnEnterScope(AMetrics: TPerformanceMetrics; const AScopeName: string): Boolean;
+function TPerformanceTracer.OnEnterScope(const AMetrics: TPerformanceMetrics; const AScopeName: string): Boolean;
 begin
-  Result := (not FUseScopeFilter) or FScopeFilter.IsMatch(AScopeName);
-  if Result then
-    begin
-      FCriticalSection.Acquire;
-      try
+  FCriticalSection.Acquire;
+  try
+    Result := (not FUseScopeFilter) or FScopeFilter.IsMatch(AScopeName);
+    if Result then
+      begin
         if FCallStack.Count > 0 then
           FPerformanceReport.Add(FCallStack.Peek, AMetrics);
         FCallStack.Push(AScopeName);
-      finally
-        FCriticalSection.Release;
       end;
-    end;
+  finally
+    FCriticalSection.Release;
+  end;
 end;
 
-procedure TPerformanceTracer.OnLeaveScope(AMetrics: TPerformanceMetrics);
+procedure TPerformanceTracer.OnLeaveScope(const AMetrics: TPerformanceMetrics);
 begin
   FCriticalSection.Acquire;
   try

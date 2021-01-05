@@ -25,7 +25,7 @@ type
       constructor Create;
       destructor Destroy; override;
 
-      procedure Add(const AScopeName: string; AMetrics: TPerformanceMetrics);
+      procedure Add(const AScopeName: string; const AMetrics: TPerformanceMetrics);
       procedure GetLines(APerformanceLines, AAggregateLines: TStrings); overload;
   end;
 
@@ -97,7 +97,7 @@ begin
   TArray.Sort<TReportEntry>(Result, Comparer);
 end;
 
-procedure TPerformanceReport.Add(const AScopeName: string; AMetrics: TPerformanceMetrics);
+procedure TPerformanceReport.Add(const AScopeName: string; const AMetrics: TPerformanceMetrics);
 var
   ScopeInfo: TScopeInfo;
 begin
@@ -108,7 +108,7 @@ begin
     end;
   with ScopeInfo do
     begin
-      TotalTicks := TotalTicks + AMetrics.FElapsedTicks;
+      TotalTicks := TotalTicks + AMetrics.FRealClockTime;
       TotalHits  := TotalHits + 1;
     end;
 end;
