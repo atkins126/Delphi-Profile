@@ -35,7 +35,7 @@ type
 
       class function ParamOrDefault(AIndex: Integer; const ADefault: string): string;
 
-      function GetHighlightColor(AValue: Double; ACol: Integer): TColor;
+      procedure CheckHighlightCell(AGrid: TStringGrid; ACol, ARow: Integer; ARect: TRect);
       class function GetGradientColor(AFirst, ASecond: TColor; APercentage: Double): TColor;
       class function GetGradientComponent(AFirst, ASecond: Byte; ARatio: Double): Byte; inline;
       class procedure HighlightCell(const AText: string; ACanvas: TCanvas; ARect: TRect; AColor: TColor);
@@ -81,20 +81,9 @@ end;
 
 procedure TFormViewer.PerformanceGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect;
   State: TGridDrawState);
-var
-  sValue        : Double;
-  highlightColor: TColor;
 begin
-  if (ACol > 1) and (ARow > 0) and not (gdSelected in State) then
-    with Sender as TStringGrid do
-      begin
-        sValue := StrToFloat(Cells[ACol, ARow]);
-        if sValue > FMeans[ACol] then
-          begin
-            highlightColor := GetHighlightColor(sValue, ACol);
-            HighlightCell(Cells[ACol, ARow], Canvas, Rect, highlightColor);
-          end;
-      end;
+  if (ACol > 1) and (ARow > 0) and ((gdFocused in State) or not (gdSelected in State)) then
+    CheckHighlightCell(Sender as TStringGrid, ACol, ARow, Rect);
 end;
 
 procedure TFormViewer.PerformanceGridKeyDown(Sender: TObject; var Key: Word; Shift: TShiftState);
@@ -105,7 +94,7 @@ end;
 
 procedure TFormViewer.AggregateGridDrawCell(Sender: TObject; ACol, ARow: Integer; Rect: TRect; State: TGridDrawState);
 begin
-  if (ACol = 1) and (ARow = 2) and not (gdSelected in State) then
+  if (ACol = 1) and (ARow = 2) and ((gdFocused in State) or not (gdSelected in State)) then
     with Sender as TStringGrid do
       HighlightCell(Cells[ACol, ARow], Canvas, Rect, clWebLavender);
 end;
@@ -116,19 +105,23 @@ begin
     CopyGridSelectionToClipboard(AggregateGrid);
 end;
 
-function TFormViewer.GetHighlightColor(AValue: Double; ACol: Integer): TColor;
+procedure TFormViewer.CheckHighlightCell(AGrid: TStringGrid; ACol, ARow: Integer; ARect: TRect);
 const
-  CMaxScore    = 3.0;
+  CMaxZScore   = 4.0;
   CFirstColor  = $F5FFFA; // MintCream
   CSecondColor = $8CB4D2; // WebTan
 var
-  ZScore: Double;         // the standard score (standard deviations from the mean)
+  Score : Double;
+  ZScore: Double; // the standard score (standard deviations from the mean)
+  Color : TColor;
 begin
-  ZScore   := (AValue - FMeans[ACol]) / FStddevs[ACol];
-  if ZScore > 0 then
-    Result := GetGradientColor(CFirstColor, CSecondColor, Min(ZScore, CMaxScore) / CMaxScore)
-  else
-    Result := clWhite;
+  Score := StrToFloat(AGrid.Cells[ACol, ARow]);
+  if Score > FMeans[ACol] then
+    begin
+      ZScore := (Score - FMeans[ACol]) / FStddevs[ACol];
+      Color  := GetGradientColor(CFirstColor, CSecondColor, Min(ZScore, CMaxZScore) / CMaxZScore);
+      HighlightCell(AGrid.Cells[ACol, ARow], AGrid.Canvas, ARect, Color);
+    end;
 end;
 
 class function TFormViewer.GetGradientColor(AFirst, ASecond: TColor; APercentage: Double): TColor;
@@ -150,7 +143,7 @@ class procedure TFormViewer.HighlightCell(const AText: string; ACanvas: TCanvas;
 var
   TopOffset: Integer;
 begin
-  ACanvas.Brush.color := AColor;
+  ACanvas.Brush.Color := AColor;
   ARect.Inflate(0, 0, 0, 0);
   ACanvas.FillRect(ARect);
   TopOffset := (ARect.Height - ACanvas.TextHeight(AText)) div 2;
