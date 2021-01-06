@@ -51,7 +51,7 @@ end;
 
 class function TScopeInfo.GetCommaHeader: string;
 const
-  CHeaderFormat = '"%s","%s","%s","%s"';
+  CHeaderFormat = '"%s","%s","%s","%s","%s","%s"';
 begin
   Result := Format(CHeaderFormat, ['Scope Name', 'Total Hits', 'Total Time (us)', 'Average Time (us)', 'Total Cycles',
       'Average Cycles']);

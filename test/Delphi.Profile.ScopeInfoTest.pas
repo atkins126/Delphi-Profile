@@ -42,7 +42,8 @@ end;
 
 procedure TScopeInfoTest.TestGetCommaHeader;
 begin
-  Assert.AreEqual('"Scope Name","Total Hits","Total Time (us)","Average Time (us)"', TScopeInfo.CommaHeader);
+  Assert.AreEqual('"Scope Name","Total Hits","Total Time (us)","Average Time (us)","Total Cycles","Average Cycles"',
+    TScopeInfo.CommaHeader);
 end;
 
 initialization

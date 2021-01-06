@@ -1,9 +1,9 @@
 object FormViewer: TFormViewer
   Left = 0
   Top = 0
-  Caption = 'FormViewer'
+  Caption = 'ProfileViewer'
   ClientHeight = 761
-  ClientWidth = 584
+  ClientWidth = 704
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,21 +15,21 @@ object FormViewer: TFormViewer
   TextHeight = 13
   object AggregateSplitter: TSplitter
     Left = 0
-    Top = 638
-    Width = 584
+    Top = 598
+    Width = 704
     Height = 3
     Cursor = crVSplit
     Align = alBottom
-    ExplicitTop = 0
-    ExplicitWidth = 761
+    ExplicitTop = 600
+    ExplicitWidth = 584
   end
   object PerformanceGrid: TStringGrid
     Left = 0
     Top = 0
-    Width = 584
-    Height = 638
+    Width = 704
+    Height = 598
     Align = alClient
-    ColCount = 4
+    ColCount = 6
     DrawingStyle = gdsClassic
     FixedCols = 0
     RowCount = 4
@@ -39,13 +39,13 @@ object FormViewer: TFormViewer
   end
   object AggregateGrid: TStringGrid
     Left = 0
-    Top = 641
-    Width = 584
-    Height = 120
+    Top = 601
+    Width = 704
+    Height = 160
     Align = alBottom
     DrawingStyle = gdsClassic
     FixedCols = 0
-    RowCount = 4
+    RowCount = 6
     TabOrder = 1
     OnDrawCell = AggregateGridDrawCell
     OnKeyDown = AggregateGridKeyDown
