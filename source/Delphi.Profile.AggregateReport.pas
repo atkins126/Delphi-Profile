@@ -16,6 +16,8 @@ type
       FTotalHits          : TList<Double>;
       FTotalMicroseconds  : TList<Double>;
       FAverageMicroseconds: TList<Double>;
+      FTotalCpuTime       : TList<Double>;
+      FAverageCpuTime     : TList<Double>;
 
     public
       constructor Create;
@@ -37,6 +39,8 @@ begin
   FTotalHits           := TList<Double>.Create;
   FTotalMicroseconds   := TList<Double>.Create;
   FAverageMicroseconds := TList<Double>.Create;
+  FTotalCpuTime        := TList<Double>.Create;
+  FAverageCpuTime      := TList<Double>.Create;
 end;
 
 destructor TAggregateReport.Destroy;
@@ -45,14 +49,18 @@ begin
   FTotalHits.Free;
   FTotalMicroseconds.Free;
   FAverageMicroseconds.Free;
+  FTotalCpuTime.Free;
+  FAverageCpuTime.Free;
   inherited;
 end;
 
 procedure TAggregateReport.Add(const AScopeInfo: TScopeInfo);
 begin
   FTotalHits.Add(AScopeInfo.TotalHits);
-  FTotalMicroseconds.Add(AScopeInfo.TotalMicroseconds);
+  FTotalMicroseconds.Add(AScopeInfo.TotalMetrics.Microseconds);
   FAverageMicroseconds.Add(AScopeInfo.AverageMicroseconds);
+  FTotalCpuTime.Add(AScopeInfo.TotalMetrics.CpuTime);
+  FAverageCpuTime.Add(AScopeInfo.AverageCpuTime);
 end;
 
 procedure TAggregateReport.Clear;
@@ -60,6 +68,8 @@ begin
   FTotalHits.Clear;
   FTotalMicroseconds.Clear;
   FAverageMicroseconds.Clear;
+  FTotalCpuTime.Clear;
+  FAverageCpuTime.Clear;
 end;
 
 procedure TAggregateReport.Compute;
@@ -68,6 +78,8 @@ begin
   FReportEntries.Add(TAggregateInfo.Create('Total Hits', FTotalHits.ToArray));
   FReportEntries.Add(TAggregateInfo.Create('Total Time (us)', FTotalMicroseconds.ToArray));
   FReportEntries.Add(TAggregateInfo.Create('Average Time (us)', FAverageMicroseconds.ToArray));
+  FReportEntries.Add(TAggregateInfo.Create('Total Cycles', FTotalCpuTime.ToArray));
+  FReportEntries.Add(TAggregateInfo.Create('Average Cycles', FAverageCpuTime.ToArray));
 end;
 
 procedure TAggregateReport.GetLines(ALines: TStrings);

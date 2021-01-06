@@ -38,6 +38,6 @@ contains
   Delphi.Profile.PerformanceTracer in '..\source\Delphi.Profile.PerformanceTracer.pas',
   Delphi.Profile.Trace in '..\source\Delphi.Profile.Trace.pas',
   Delphi.Profile in '..\source\Delphi.Profile.pas',
-  Delphi.Profile.PerformanceCounter in '..\source\Delphi.Profile.PerformanceCounter.pas';
+  Delphi.Profile.PerformanceMetrics in '..\source\Delphi.Profile.PerformanceMetrics.pas';
 
 end.

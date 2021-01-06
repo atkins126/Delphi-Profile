@@ -3,7 +3,7 @@ unit Delphi.Profile.PerformanceReport;
 interface
 
 uses
-  Delphi.Profile.PerformanceCounter,
+  Delphi.Profile.PerformanceMetrics,
   Delphi.Profile.ScopeInfo,
   Delphi.Profile.AggregateReport,
   System.Generics.Collections,
@@ -44,12 +44,7 @@ type
 
 function TTotalTicksComparer.Compare(const Left, Right: TReportEntry): Integer;
 begin
-  if Left.Value.TotalTicks < Right.Value.TotalTicks then
-    Result := 1 // sort in descending order
-  else if Left.Value.TotalTicks > Right.Value.TotalTicks then
-    Result := - 1
-  else
-    Result := 0;
+  Result := - Left.Value.TotalMetrics.Compare(Right.Value.TotalMetrics); // sort in descending order
 end;
 
 { TPerformanceReport }
@@ -106,11 +101,7 @@ begin
       ScopeInfo := TScopeInfo.Create(AScopeName);
       FReportEntries.Add(AScopeName, ScopeInfo);
     end;
-  with ScopeInfo do
-    begin
-      TotalTicks := TotalTicks + AMetrics.FRealClockTime;
-      TotalHits  := TotalHits + 1;
-    end;
+  ScopeInfo.Add(AMetrics);
 end;
 
 end.

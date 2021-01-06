@@ -4,7 +4,7 @@ interface
 
 uses
   Delphi.Profile.Trace,
-  Delphi.Profile.PerformanceCounter,
+  Delphi.Profile.PerformanceMetrics,
   Delphi.Profile.PerformanceReport,
   System.Generics.Collections,
   System.RegularExpressions,
@@ -27,7 +27,7 @@ type
       function OnEnterScope(const AMetrics: TPerformanceMetrics; const AScopeName: string): Boolean;
       procedure OnLeaveScope(const AMetrics: TPerformanceMetrics);
 
-      function GetCallStack(AThreadID: TThreadID): TCallStack;
+      function GetCurrentCallStack: TCallStack;
       procedure SetScopeFilter(const APattern: string);
 
     public
@@ -101,7 +101,7 @@ begin
   try
     Result := (not FUseScopeFilter) or FScopeFilter.IsMatch(AScopeName);
     if Result then
-      with GetCallStack(TThread.Current.ThreadID) do
+      with GetCurrentCallStack do
         begin
           if Count > 0 then
             FPerformanceReport.Add(Peek, AMetrics);
@@ -112,20 +112,21 @@ begin
   end;
 end;
 
-function TPerformanceTracer.GetCallStack(AThreadID: TThreadID): TCallStack;
+function TPerformanceTracer.GetCurrentCallStack: TCallStack;
 begin
-  if not FCallStacks.TryGetValue(AThreadID, Result) then
-    begin
-      Result := TCallStack.Create;
-      FCallStacks.Add(AThreadID, Result);
-    end;
+  with TThread.Current do
+    if not FCallStacks.TryGetValue(ThreadID, Result) then
+      begin
+        Result := TCallStack.Create;
+        FCallStacks.Add(ThreadID, Result);
+      end;
 end;
 
 procedure TPerformanceTracer.OnLeaveScope(const AMetrics: TPerformanceMetrics);
 begin
   FCriticalSection.Acquire;
   try
-    with GetCallStack(TThread.Current.ThreadID) do
+    with GetCurrentCallStack do
       begin
         Assert(Count > 0);
         FPerformanceReport.Add(Pop, AMetrics);

@@ -6,7 +6,7 @@ uses
   DUnitX.TestFramework,
   Delphi.Mocks,
   Delphi.Profile.Trace,
-  Delphi.Profile.PerformanceCounter,
+  Delphi.Profile.PerformanceMetrics,
   System.Generics.Collections;
 
 type
@@ -26,8 +26,7 @@ type
       procedure SetupMock;
 
     const
-      CMaximumTickCount        = 3;
-      CMaximumTickCountWithWmi = 10;
+      CMaximumTickCount = 3;
 
     public
       [Setup]
@@ -40,9 +39,6 @@ type
 
       [Test]
       procedure TestTrace;
-
-      [Test]
-      procedure TestTraceWithWmi;
 
       [Test]
       procedure TestNestedTrace;
@@ -59,8 +55,6 @@ begin
   FTraces       := TStack<TTraceEvent>.Create;
   TTrace.Tracer := FTracer;
   SetupMock;
-
-  TPerformanceCounter.EnableWmi := False;
 end;
 
 procedure TTraceTest.SetupMock;
@@ -117,7 +111,7 @@ begin
   with FTraces.Pop do
     begin
       Assert.AreEqual(TraceLeave, FEventType);
-      Assert.IsTrue(FMetrics.FRealClockTime < CMaximumTickCount);
+      Assert.IsTrue(FMetrics.RealTime < CMaximumTickCount);
     end;
   with FTraces.Pop do
     begin
@@ -126,28 +120,6 @@ begin
     end;
   FTracer.VerifyAll;
   Assert.IsNotNull(TTrace.Create('')); // in this case, the trace will be saved in the function stack
-end;
-
-procedure TTraceTest.TestTraceWithWmi;
-begin
-  FTracer.Setup.Expect.Once('OnEnterScope');
-  FTracer.Setup.Expect.Once('OnLeaveScope');
-  TPerformanceCounter.EnableWmi := True;
-  begin
-    TTrace.Create(''); // count number of ticks spent in this block
-  end;
-  Assert.AreEqual(2, FTraces.Count);
-  with FTraces.Pop do
-    begin
-      Assert.AreEqual(TraceLeave, FEventType);
-      Assert.IsTrue(FMetrics.FRealClockTime < CMaximumTickCountWithWmi);
-    end;
-  with FTraces.Pop do
-    begin
-      Assert.AreEqual('', FScopeName);
-      Assert.AreEqual(TraceEnter, FEventType);
-    end;
-  FTracer.VerifyAll;
 end;
 
 procedure TTraceTest.TestNestedTrace;
@@ -164,18 +136,18 @@ begin
   with FTraces.Pop do
     begin
       Assert.AreEqual(TraceLeave, FEventType);
-      Assert.IsTrue(FMetrics.FRealClockTime < CMaximumTickCount);
+      Assert.IsTrue(FMetrics.RealTime < CMaximumTickCount);
     end;
   with FTraces.Pop do
     begin
       Assert.AreEqual(TraceLeave, FEventType);
-      Assert.IsTrue(FMetrics.FRealClockTime < CMaximumTickCount);
+      Assert.IsTrue(FMetrics.RealTime < CMaximumTickCount);
     end;
   with FTraces.Pop do
     begin
       Assert.AreEqual('Inner', FScopeName);
       Assert.AreEqual(TraceEnter, FEventType);
-      Assert.IsTrue(FMetrics.FRealClockTime < CMaximumTickCount);
+      Assert.IsTrue(FMetrics.RealTime < CMaximumTickCount);
     end;
   with FTraces.Pop do
     begin

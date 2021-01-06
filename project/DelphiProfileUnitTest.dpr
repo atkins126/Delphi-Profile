@@ -21,7 +21,7 @@ uses
   Delphi.Profile.AggregateReportTest in '..\test\Delphi.Profile.AggregateReportTest.pas',
   Delphi.Profile.PerformanceReportTest in '..\test\Delphi.Profile.PerformanceReportTest.pas',
   Delphi.Profile.PerformanceTracerTest in '..\test\Delphi.Profile.PerformanceTracerTest.pas',
-  Delphi.Profile.PerformanceCounterTest in '..\test\Delphi.Profile.PerformanceCounterTest.pas';
+  Delphi.Profile.PerformanceMetricsTest in '..\test\Delphi.Profile.PerformanceMetricsTest.pas';
 
 {$IFNDEF TESTINSIGHT}
 var
